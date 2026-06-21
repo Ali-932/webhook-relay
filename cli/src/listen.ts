@@ -59,12 +59,3 @@ export async function listen(args: string[]): Promise<void> {
     }
   }, 2000);
 }
-
-// ponytail: inline self-test, remove when full integration test added
-if (process.argv[2] === "--self-test") {
-  const parsed = parseArgs(["--token", "abc", "--port", "3000", "--worker", "http://x"]);
-  console.assert(parsed.token === "abc", "token parse failed");
-  console.assert(parsed.port === 3000, "port parse failed");
-  console.assert(parsed.worker === "http://x", "worker parse failed");
-  console.log("self-test passed");
-}
