@@ -1,4 +1,5 @@
-import http from "http";
+import { loadConfig, readCursor, writeCursor } from "./config.js";
+import type { WebhookRecord } from "./types.js";
 
 interface ListenArgs {
   token: string;
@@ -7,25 +8,20 @@ interface ListenArgs {
 }
 
 function parseArgs(args: string[]): ListenArgs {
-  const get = (flag: string): string => {
-    const i = args.indexOf(flag);
-    if (i === -1 || !args[i + 1]) throw new Error(`missing ${flag}`);
-    return args[i + 1];
-  };
-  return {
-    token: get("--token"),
-    port: Number(get("--port")),
-    worker: get("--worker"),
-  };
-}
+  const config = loadConfig();
 
-interface WebhookRecord {
-  id: string;
-  token: string;
-  method: string;
-  headers: string;
-  body: string;
-  received_at: number;
+  const get = (flag: string, fallback?: string): string => {
+    const i = args.indexOf(flag);
+    if (i !== -1 && args[i + 1]) return args[i + 1];
+    if (fallback !== undefined) return fallback;
+    throw new Error(`missing ${flag} — run "relay init" or pass ${flag} directly`);
+  };
+
+  return {
+    token: get("--token", config.token),
+    port: Number(get("--port")),
+    worker: get("--worker", config.worker),
+  };
 }
 
 async function forward(record: WebhookRecord, port: number): Promise<void> {
@@ -46,7 +42,7 @@ export async function listen(args: string[]): Promise<void> {
   console.log(`Listening for token "${token}" — forwarding to localhost:${port}`);
   console.log(`Polling ${worker} every 2 seconds...\n`);
 
-  let since = 0;
+  let since = readCursor();
 
   setInterval(async () => {
     const res = await fetch(`${worker}/webhooks?token=${token}&since=${since}`);
@@ -56,6 +52,7 @@ export async function listen(args: string[]): Promise<void> {
       console.log(`← received ${record.id} (${new Date(record.received_at).toISOString()})`);
       await forward(record, port);
       since = Math.max(since, record.received_at);
+      writeCursor(since);
     }
   }, 2000);
 }

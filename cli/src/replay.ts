@@ -1,11 +1,5 @@
-interface WebhookRecord {
-    id: string;
-    token: string;
-    method: string;
-    headers: string;
-    body: string;
-    received_at: number;
-}
+import { loadConfig } from "./config.js";
+import type { WebhookRecord } from "./types.js";
 
 interface ReplayArgs {
     id: string;
@@ -14,16 +8,19 @@ interface ReplayArgs {
 }
 
 function parseArgs(args: string[]): ReplayArgs {
+    const config = loadConfig();
+
     const id = args[0];
     if (!id || id.startsWith("--")) throw new Error("first arg must be the webhook ID");
 
-    const get = (flag: string): string => {
+    const get = (flag: string, fallback?: string): string => {
         const i = args.indexOf(flag);
-        if (i === -1 || !args[i + 1]) throw new Error(`missing ${flag}`);
-        return args[i + 1];
+        if (i !== -1 && args[i + 1]) return args[i + 1];
+        if (fallback !== undefined) return fallback;
+        throw new Error(`missing ${flag} — run "relay init" or pass ${flag} directly`);
     };
 
-    return {id, port: Number(get("--port")), worker: get("--worker")};
+    return { id, port: Number(get("--port")), worker: get("--worker", config.worker) };
 }
 
 export async function replay(args: string[]): Promise<void> {
@@ -40,8 +37,6 @@ export async function replay(args: string[]): Promise<void> {
     delete headers["content-length"];
 
     console.log(`Replaying ${id} to localhost:${port}...`);
-
-    // TypeScript concept: optional chaining — body?.length avoids crash if body is empty string
     const localRes = await fetch(`http://localhost:${port}`, {
         method: record.method,
         headers,
