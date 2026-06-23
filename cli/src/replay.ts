@@ -1,4 +1,5 @@
 import { loadConfig } from "./config.js";
+import { forwardToLocal, getFlag } from "./utils.js";
 import type { WebhookRecord } from "./types.js";
 
 interface ReplayArgs {
@@ -13,14 +14,7 @@ function parseArgs(args: string[]): ReplayArgs {
     const id = args[0];
     if (!id || id.startsWith("--")) throw new Error("first arg must be the webhook ID");
 
-    const get = (flag: string, fallback?: string): string => {
-        const i = args.indexOf(flag);
-        if (i !== -1 && args[i + 1]) return args[i + 1];
-        if (fallback !== undefined) return fallback;
-        throw new Error(`missing ${flag} — run "relay init" or pass ${flag} directly`);
-    };
-
-    return { id, port: Number(get("--port")), worker: get("--worker", config.worker) };
+    return { id, port: Number(getFlag(args, "--port")), worker: getFlag(args, "--worker", config.worker) };
 }
 
 export async function replay(args: string[]): Promise<void> {
@@ -33,15 +27,8 @@ export async function replay(args: string[]): Promise<void> {
     }
 
     const record = (await res.json()) as WebhookRecord;
-    const headers = JSON.parse(record.headers) as Record<string, string>;
-    delete headers["content-length"];
 
     console.log(`Replaying ${id} to localhost:${port}...`);
-    const localRes = await fetch(`http://localhost:${port}`, {
-        method: record.method,
-        headers,
-        body: record.body?.length ? record.body : undefined,
-    });
-
-    console.log(`Done — local responded ${localRes.status}`);
+    const status = await forwardToLocal(record, port);
+    console.log(`Done — local responded ${status}`);
 }

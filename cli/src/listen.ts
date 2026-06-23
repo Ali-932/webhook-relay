@@ -1,4 +1,5 @@
 import { loadConfig, readCursor, writeCursor } from "./config.js";
+import { forwardToLocal, getFlag } from "./utils.js";
 import type { WebhookRecord } from "./types.js";
 
 interface ListenArgs {
@@ -9,31 +10,11 @@ interface ListenArgs {
 
 function parseArgs(args: string[]): ListenArgs {
   const config = loadConfig();
-
-  const get = (flag: string, fallback?: string): string => {
-    const i = args.indexOf(flag);
-    if (i !== -1 && args[i + 1]) return args[i + 1];
-    if (fallback !== undefined) return fallback;
-    throw new Error(`missing ${flag} — run "relay init" or pass ${flag} directly`);
-  };
-
   return {
-    token: get("--token", config.token),
-    port: Number(get("--port")),
-    worker: get("--worker", config.worker),
+    token: getFlag(args, "--token", config.token),
+    port: Number(getFlag(args, "--port")),
+    worker: getFlag(args, "--worker", config.worker),
   };
-}
-
-async function forward(record: WebhookRecord, port: number): Promise<void> {
-  const headers = JSON.parse(record.headers) as Record<string, string>;
-  delete headers["content-length"];
-
-  const res = await fetch(`http://localhost:${port}`, {
-    method: record.method,
-    headers,
-    body: record.body || undefined,
-  });
-  console.log(`→ forwarded ${record.id} — local responded ${res.status}`);
 }
 
 export async function listen(args: string[]): Promise<void> {
@@ -50,7 +31,8 @@ export async function listen(args: string[]): Promise<void> {
     const records = (await res.json()) as WebhookRecord[];
     for (const record of records) {
       console.log(`← received ${record.id} (${new Date(record.received_at).toISOString()})`);
-      await forward(record, port);
+      const status = await forwardToLocal(record, port);
+      console.log(`→ forwarded ${record.id} — local responded ${status}`);
       since = Math.max(since, record.received_at);
       writeCursor(since);
     }

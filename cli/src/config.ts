@@ -5,10 +5,11 @@ import path from "path";
 export interface Config {
   worker: string;
   token: string;
+  port?: number;
 }
 
 const DIR = path.join(os.homedir(), ".webhook-relay");
-const CONFIG_PATH = path.join(DIR, "config.json");
+export const CONFIG_PATH = path.join(DIR, "config.json");
 const CURSOR_PATH = path.join(DIR, "cursor");
 
   export function loadConfig(): Partial<Config> {

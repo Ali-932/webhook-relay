@@ -56,6 +56,12 @@ export default {
       return Response.json(result.results);
     }
 
+    // DELETE /webhooks  — purge ALL webhooks (every token), no auth
+    if (request.method === "DELETE" && path === "/webhooks") {
+      const result = await env.DB.prepare(`DELETE FROM webhooks`).run();
+      return Response.json({ deleted: result.meta.changes ?? 0 });
+    }
+
     // GET /webhook/:id  — fetch one webhook by ID (used by replay)
     if (request.method === "GET" && path.startsWith("/webhook/")) {
       const id = path.split("/")[2];
