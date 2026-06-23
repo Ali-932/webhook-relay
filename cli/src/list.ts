@@ -1,18 +1,12 @@
 import { loadConfig } from "./config.js";
+import { getFlag } from "./utils.js";
 import type { WebhookRecord } from "./types.js";
 
 export async function list(args: string[]): Promise<void> {
   const config = loadConfig();
 
-  const get = (flag: string, fallback?: string): string => {
-    const i = args.indexOf(flag);
-    if (i !== -1 && args[i + 1]) return args[i + 1];
-    if (fallback !== undefined) return fallback;
-    throw new Error(`missing ${flag} — run "relay init" or pass ${flag} directly`);
-  };
-
-  const worker = get("--worker", config.worker);
-  const token = get("--token", config.token);
+  const worker = getFlag(args, "--worker", config.worker);
+  const token = getFlag(args, "--token", config.token);
 
   const res = await fetch(`${worker}/webhooks?token=${token}&since=0`);
   if (!res.ok) {
