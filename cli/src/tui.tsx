@@ -247,8 +247,7 @@ function App({ token: initToken, worker: initWorker, port }: TuiArgs) {
   return (
     <Box flexDirection="column" height={rows}>
       <Box paddingX={1}>
-        <Text dimColor>{worker} </Text>
-        <Text dimColor>· token: {token}</Text>
+        <Text dimColor>{worker}/webhook/{token} </Text>
       </Box>
       <Box flexGrow={1}>
         <Box flexDirection="column" width={34} borderStyle="round" paddingX={1}>
