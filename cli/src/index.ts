@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-const [, , command, ...rest] = process.argv;
+// Bare `relay` or a leading flag (`relay --port 3000`) defaults to the TUI.
+const rest = process.argv.slice(2);
+const command = !rest[0] || rest[0].startsWith("-") ? "tui" : rest.shift()!;
 
 if (command === "init") {
   const { init } = await import("./init.js");
