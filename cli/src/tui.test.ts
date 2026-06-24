@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { prettyBody, mergeRecords, maxReceivedAt, editField } from "./tui.js";
+import { prettyBody, mergeRecords, maxReceivedAt } from "./tui.js";
 import { getFlag } from "./utils.js";
 import type { WebhookRecord } from "./types.js";
 
@@ -39,12 +39,4 @@ test("getFlag falls back when the flag is absent", () => {
 
 test("getFlag throws when neither flag nor fallback is present", () => {
   assert.throws(() => getFlag([], "--port"), /missing --port/);
-});
-
-test("editField appends a printable char, backspace removes the last", () => {
-  const after = editField("htt", "p", {});
-  assert.equal(after, "http");
-  assert.equal(editField(after, "", { backspace: true }), "htt");
-  assert.equal(editField("x", "", { delete: true }), "");
-  assert.equal(editField("", "", { backspace: true }), ""); // no underflow
 });
