@@ -56,9 +56,14 @@ export default {
       return Response.json(result.results);
     }
 
-    // DELETE /webhooks  — purge ALL webhooks (every token), no auth
+    // DELETE /webhooks?token=  — purge only this token's webhooks
     if (request.method === "DELETE" && path === "/webhooks") {
-      const result = await env.DB.prepare(`DELETE FROM webhooks`).run();
+      const token = url.searchParams.get("token");
+      if (!token) return new Response("missing token", { status: 400 });
+
+      const result = await env.DB.prepare(`DELETE FROM webhooks WHERE token = ?`)
+        .bind(token)
+        .run();
       return Response.json({ deleted: result.meta.changes ?? 0 });
     }
 
