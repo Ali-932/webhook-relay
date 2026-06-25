@@ -70,7 +70,6 @@ function Detail({ record, scroll, height }: { record: WebhookRecord; scroll: num
   );
 }
 
-// Chrome rows: 1 header + 1 top-border + 1 panel-title + 1 bottom-border + 1 status = 5
 const CHROME = 5;
 
 function App({ token, worker, port }: TuiArgs) {
@@ -91,10 +90,8 @@ function App({ token, worker, port }: TuiArgs) {
 
   const contentRows = Math.max(4, rows - CHROME);
 
-  // Reset detail scroll when selection changes
   useEffect(() => { setDetailScroll(0); }, [selected]);
 
-  // Keep selected item visible in list panel
   useEffect(() => {
     setListOffset(prev => {
       if (selected < prev) return selected;
@@ -185,7 +182,7 @@ function App({ token, worker, port }: TuiArgs) {
   return (
     <Box flexDirection="column" height={rows}>
       <Box paddingX={1}>
-        <Text dimColor>{worker}/webhook/{token} </Text>
+        <Text dimColor>Polling: {worker}/webhook/{token} </Text>
       </Box>
       <Box flexGrow={1}>
         <Box flexDirection="column" width={34} borderStyle="round" paddingX={1}>
