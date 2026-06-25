@@ -8,7 +8,8 @@
   },
   "files": [
     "dist",
-    "!dist/**/*.test.js"
+    "!dist/**/*.test.js",
+    "worker-template"
   ],
   "engines": {
     "node": ">=18"
@@ -24,10 +25,10 @@
   ],
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
+    "build": "node scripts/copy-worker.mjs && tsc",
     "start": "node dist/index.js",
     "dev": "node --watch dist/index.js",
-    "prepublishOnly": "rm -rf dist && tsc"
+    "prepublishOnly": "rm -rf dist worker-template && npm run build"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
