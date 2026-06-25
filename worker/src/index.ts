@@ -15,8 +15,26 @@ function generateId(): string {
   return crypto.randomUUID();
 }
 
+// The Worker creates its own table, so a freshly-provisioned D1 (e.g. from the
+// "Deploy to Cloudflare" button) works with no migration step. CREATE ... IF NOT
+// EXISTS is idempotent; `ready` skips it after the first request per isolate.
+let ready = false;
+async function ensureSchema(db: D1Database): Promise<void> {
+  if (ready) return;
+  await db
+    .prepare(
+      `CREATE TABLE IF NOT EXISTS webhooks (
+         id TEXT PRIMARY KEY, token TEXT NOT NULL, method TEXT NOT NULL,
+         headers TEXT NOT NULL, body TEXT NOT NULL, received_at INTEGER NOT NULL
+       )`
+    )
+    .run();
+  ready = true;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    await ensureSchema(env.DB);
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -42,7 +60,7 @@ export default {
 
     // GET /webhooks?token=&since=  — poll for new webhooks
     if (request.method === "GET" && path === "/webhooks") {
-      const token = url.searchParams.get("token");  // returns string|null
+      const token = url.searchParams.get("token");
       const since = Number(url.searchParams.get("since") ?? "0");
 
       if (!token) return new Response("missing token", { status: 400 });
