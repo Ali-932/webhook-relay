@@ -6,6 +6,9 @@ const command = !rest[0] || rest[0].startsWith("-") ? "tui" : rest.shift()!;
 if (command === "init") {
   const { init } = await import("./init.js");
   await init();
+} else if (command === "deploy") {
+  const { deploy } = await import("./deploy.js");
+  await deploy();
 } else if (command === "status") {
   const { status } = await import("./status.js");
   status();
@@ -26,6 +29,7 @@ if (command === "init") {
   await tui(rest);
 } else {
   console.log("Usage:");
+  console.log("  relay deploy");
   console.log("  relay init");
   console.log("  relay status");
   console.log("  relay list [--token <token>] [--worker <url>]");
