@@ -24,11 +24,21 @@
     "tunnel"
   ],
   "license": "MIT",
+  "author": "Ali-932",
+  "homepage": "https://github.com/Ali-932/webhook-relay#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ali-932/webhook-relay.git",
+    "directory": "cli"
+  },
+  "bugs": {
+    "url": "https://github.com/Ali-932/webhook-relay/issues"
+  },
   "scripts": {
     "build": "node scripts/copy-worker.mjs && tsc",
     "start": "node dist/index.js",
     "dev": "node --watch dist/index.js",
-    "prepublishOnly": "rm -rf dist worker-template && npm run build"
+    "prepublishOnly": "rm -rf dist worker-template && npm run build && cp ../README.md README.md && sed -i 's|](.github/assets/|](https://raw.githubusercontent.com/Ali-932/webhook-relay/main/.github/assets/|g' README.md"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

@@ -18,6 +18,12 @@ dist-ssr
 # Worker assets bundled into the CLI at build time (copied from worker/)
 cli/worker-template
 
+# README copied from repo root into the package at prepublish (npm page)
+cli/README.md
+
+# npm pack output
+*.tgz
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
