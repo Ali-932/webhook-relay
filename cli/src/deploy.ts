@@ -17,6 +17,8 @@ function wrangler(
     const child = spawn(npx, ["-y", "wrangler", ...args], {
       cwd: opts.cwd,
       stdio: ["inherit", "pipe", "pipe"],
+      // Node 22+ on Windows throws EINVAL spawning .cmd/.bat without a shell (CVE-2024-27980 fix).
+      shell: process.platform === "win32",
     });
     let out = "";
     let err = "";

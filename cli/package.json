@@ -1,6 +1,6 @@
 {
   "name": "webhook-relay-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Receive webhooks on a Cloudflare Worker and relay them to your local app — listen, replay, and a live TUI.",
   "type": "module",
   "bin": {
