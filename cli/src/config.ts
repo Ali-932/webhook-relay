@@ -6,6 +6,7 @@ export interface Config {
   worker: string;
   token: string;
   port?: number;
+  retentionDays?: number;
 }
 
 const DIR = path.join(os.homedir(), ".webhook-relay");

@@ -62,6 +62,9 @@ wrangler deploy
 The token is just a name that separates your webhook streams. Override the saved
 config any time with `relay init`.
 
+`relay deploy` asks how many days to keep webhooks (default 7, `0` keeps them
+forever) and saves it as `retentionDays` in `~/.webhook-relay/config.json`.
+
 ## 3. Point your provider at the Worker
 
 Configure the webhook sender (GitHub, Stripe, etc.) to POST to:

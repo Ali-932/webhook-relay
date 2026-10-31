@@ -9,6 +9,7 @@ export interface WebhookRecord {
 
 export type Env = {
   DB: D1Database;
+  RETENTION_DAYS?: string;
 };
 
 function generateId(): string {
@@ -26,14 +27,24 @@ async function ensureSchema(db: D1Database): Promise<void> {
       `CREATE TABLE IF NOT EXISTS webhooks (
          id TEXT PRIMARY KEY, token TEXT NOT NULL, method TEXT NOT NULL,
          headers TEXT NOT NULL, body TEXT NOT NULL, received_at INTEGER NOT NULL
-       )`
+       );
+        CREATE INDEX IF NOT EXISTS webhooks_token_time ON webhooks (token, received_at);
+        CREATE INDEX IF NOT EXISTS webhooks_time ON webhooks (received_at);`
     )
     .run();
   ready = true;
 }
 
+async function deleteExpired(env: Env): Promise<void> {
+  const days = Number(env.RETENTION_DAYS ?? 7);
+  if (days <= 0) return;
+  await env.DB.prepare(`DELETE FROM webhooks WHERE received_at < ?`)
+    .bind(Date.now() - days * 86_400_000) // days * day in millisecond
+    .run();
+}
+
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     await ensureSchema(env.DB);
     const url = new URL(request.url);
     const path = url.pathname;
@@ -55,6 +66,7 @@ export default {
         .bind(id, token, request.method, headers, body, received_at)
         .run();
 
+      ctx.waitUntil(deleteExpired(env));
       return Response.json({ id, received_at });
     }
 

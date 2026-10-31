@@ -5,6 +5,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { loadConfig, saveConfig } from "./config.js";
+import { prompt } from "./utils.js";
 
 const npx = process.platform === "win32" ? "npx.cmd" : "npx";
 
@@ -56,14 +57,15 @@ export async function deploy(): Promise<void> {
     await wrangler(["login"], { cwd });
   }
 
+  const retentionDays = loadConfig().retentionDays ?? Number((await prompt("Keep webhooks for how many days? (0 = forever) [7] ")) || 7);
   console.log("→ deploying worker (creates your D1 on first run)…");
-  const dep = await wrangler(["deploy"], { cwd });
+  const dep = await wrangler(["deploy", "--var", `RETENTION_DAYS:${retentionDays}`], { cwd });
   if (dep.code !== 0) throw new Error("wrangler deploy failed (see output above).");
   const url = parseWorkerUrl(dep.out + dep.err);
   if (!url) throw new Error("deployed, but could not parse the worker URL from the output above.");
 
   const token = loadConfig().token ?? randomBytes(16).toString("hex");
-  saveConfig({ worker: url, token });
+  saveConfig({ worker: url, token, retentionDays });
 
   console.log(`
 ✓ deployed: ${url}
